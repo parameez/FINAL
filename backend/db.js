@@ -1,28 +1,35 @@
-require('dotenv').config();
-const mysql = require('mysql2/promise');
+require("dotenv").config();
+const mysql = require("mysql2/promise");
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
-  port: process.env.DB_PORT,
+  port: Number(process.env.DB_PORT || 4000),
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  connectTimeout: 10000
+  connectTimeout: 10000,
+  ssl:
+    process.env.DB_SSL === "true"
+      ? {
+          rejectUnauthorized: false,
+        }
+      : undefined,
 });
 
 async function testConnection() {
   try {
     const conn = await pool.getConnection();
-    const [rows] = await conn.query('SELECT 1 AS ok');
+    const [rows] = await conn.query("SELECT 1 AS ok");
     conn.release();
-    console.log('MySQL connected ✓', rows[0]);
+    console.log("MySQL connected ✅", rows[0]);
   } catch (err) {
-    console.error('MySQL connection error ✗', err.message);
+    console.error("MySQL connection error ❌", err.message);
   }
 }
+
 testConnection();
 
 async function query(sql, params = []) {
@@ -32,5 +39,5 @@ async function query(sql, params = []) {
 
 module.exports = {
   pool,
-  query
+  query,
 };
