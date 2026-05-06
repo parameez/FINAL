@@ -41,8 +41,9 @@ router.post("/register", async (req, res) => {
 
     await db.query(
       `INSERT INTO tp_user
-        (username, password_hash, full_name, gender, role, is_blocked)
-       VALUES (?, ?, ?, ?, 'user', 0)`,
+        (user_id, username, password_hash, full_name, gender, role, is_blocked)
+       SELECT COALESCE(MAX(user_id), 0) + 1, ?, ?, ?, ?, 'user', 0
+       FROM tp_user`,
       [username, hashed, full_name || null, gender || "other"]
     );
 
@@ -174,13 +175,11 @@ router.post("/dev-reset-password", async (req, res) => {
 
     const hashed = await bcrypt.hash(new_password, 10);
 
-    // อัปเดตรหัสผ่าน
     await db.query(
       "UPDATE tp_user SET password_hash = ? WHERE username = ?",
       [hashed, username]
     );
 
-    // อัปเดต role (ถ้าส่งมา)
     if (new_role) {
       await db.query(
         "UPDATE tp_user SET role = ? WHERE username = ?",
