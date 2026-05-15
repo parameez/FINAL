@@ -81,8 +81,11 @@ function calcGripAssessment({ gender, age_group, grip_value }) {
 router.post("/", auth, async (req, res) => {
   try {
     const userId = req.userId;
-
     const { gender, age_group, hand, grip_value, note } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ msg: "Unauthorized" });
+    }
 
     if (!["male", "female"].includes(gender)) {
       return res.status(400).json({ msg: "กรุณาเลือกเพศให้ถูกต้อง" });
@@ -111,9 +114,11 @@ router.post("/", auth, async (req, res) => {
       (note ? `, หมายเหตุ: ${note}` : "");
 
     await db.query(
-      `INSERT INTO assessments 
+      `
+      INSERT INTO assessments 
         (user_id, score, result, advice, note, created_at) 
-       VALUES (?, ?, ?, ?, ?, NOW())`,
+      VALUES (?, ?, ?, ?, ?, NOW())
+      `,
       [userId, score, result, advice, detailNote]
     );
 
@@ -124,8 +129,8 @@ router.post("/", auth, async (req, res) => {
       advice,
     });
   } catch (err) {
-    console.error("ASSESSMENTS POST ERROR:", err);
-    return res.status(500).json({ msg: err.message || "Server error" });
+    console.error("ASSESSMENTS POST ERROR:", err.message);
+    return res.status(500).json({ msg: "Server error", error: err.message });
   }
 });
 
@@ -134,29 +139,36 @@ router.get("/me", auth, async (req, res) => {
   try {
     const userId = req.userId;
 
+    if (!userId) {
+      return res.status(401).json({ msg: "Unauthorized" });
+    }
+
     const rows = await db.query(
-      `SELECT 
-          a.id,
-          a.user_id,
-          u.username,
-          u.full_name,
-          u.gender,
-          a.score,
-          a.result,
-          a.advice,
-          a.note,
-          a.created_at
-       FROM assessments a
-       LEFT JOIN tp_user u ON a.user_id = u.user_id
-       WHERE a.user_id = ?
-       ORDER BY a.created_at DESC`,
+      `
+      SELECT 
+        a.id,
+        a.user_id,
+        u.username,
+        u.full_name,
+        u.gender,
+        a.score,
+        a.result,
+        a.advice,
+        a.note,
+        a.created_at
+      FROM assessments a
+      LEFT JOIN tp_user u 
+        ON a.user_id = u.user_id
+      WHERE a.user_id = ?
+      ORDER BY a.created_at DESC
+      `,
       [userId]
     );
 
     return res.json(rows);
   } catch (err) {
-    console.error("ASSESSMENTS GET ERROR:", err);
-    return res.status(500).json({ msg: "Server error" });
+    console.error("ASSESSMENTS GET ERROR:", err.message);
+    return res.status(500).json({ msg: "Server error", error: err.message });
   }
 });
 
