@@ -34,7 +34,7 @@ export default function NavBar() {
         </Link>
 
         <Link to="/assessment" className="nav-link">
-          เมนูสุขภาพ
+          แบบประเมินสุขภาพ
         </Link>
 
         <Link to="/device-connect" className="nav-link">
