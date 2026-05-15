@@ -81,7 +81,12 @@ function calcGripAssessment({ gender, age_group, grip_value }) {
 router.post("/", auth, async (req, res) => {
   try {
     const userId = req.userId;
-    const { gender, age_group, hand, grip_value, note } = req.body;
+
+    const { device_id, gender, age_group, hand, grip_value, note } = req.body;
+
+    if (!device_id || Number(device_id) <= 0) {
+      return res.status(400).json({ msg: "กรุณากรอก Device ID ให้ถูกต้อง" });
+    }
 
     if (!["male", "female"].includes(gender)) {
       return res.status(400).json({ msg: "กรุณาเลือกเพศให้ถูกต้อง" });
@@ -105,17 +110,21 @@ router.post("/", auth, async (req, res) => {
     const handText = hand === "right" ? "ขวา" : "ซ้าย";
 
     const detailNote =
+      `Device ID: ${device_id}, ` +
       `เพศ: ${genderText}, อายุ: ${age_group}, มือ: ${handText}, ` +
       `แรงบีบมือ: ${grip_value} kg` +
       (note ? `, หมายเหตุ: ${note}` : "");
 
     await db.query(
-      "INSERT INTO assessments (user_id, score, result, advice, note, created_at) VALUES (?, ?, ?, ?, ?, NOW())",
+      `INSERT INTO assessments 
+        (user_id, score, result, advice, note, created_at) 
+       VALUES (?, ?, ?, ?, ?, NOW())`,
       [userId, score, result, advice, detailNote]
     );
 
     return res.json({
       msg: "บันทึกแบบประเมินสำเร็จ",
+      device_id: Number(device_id),
       score,
       result,
       advice,
@@ -132,7 +141,21 @@ router.get("/me", auth, async (req, res) => {
     const userId = req.userId;
 
     const rows = await db.query(
-      "SELECT id, score, result, advice, note, created_at FROM assessments WHERE user_id=? ORDER BY created_at DESC",
+      `SELECT 
+          a.id,
+          a.user_id,
+          u.username,
+          u.full_name,
+          u.gender,
+          a.score,
+          a.result,
+          a.advice,
+          a.note,
+          a.created_at
+       FROM assessments a
+       LEFT JOIN tp_user u ON a.user_id = u.user_id
+       WHERE a.user_id = ?
+       ORDER BY a.created_at DESC`,
       [userId]
     );
 

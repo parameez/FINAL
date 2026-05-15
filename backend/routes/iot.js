@@ -1,7 +1,5 @@
-import express from "express";
-import { db } from "../db.js";
-
-const router = express.Router();
+const router = require("express").Router();
+const db = require("../db");
 
 /**
  * บอร์ดยิงมา: POST /api/iot/grip
@@ -13,6 +11,7 @@ const router = express.Router();
 router.post("/grip", async (req, res) => {
   try {
     const apiKey = req.headers["x-api-key"];
+
     if (apiKey !== process.env.IOT_API_KEY) {
       return res.status(401).json({ msg: "Unauthorized device" });
     }
@@ -23,49 +22,105 @@ router.post("/grip", async (req, res) => {
       return res.status(400).json({ msg: "Missing device_id or grip_value" });
     }
 
+    if (!["left", "right"].includes(hand)) {
+      return res.status(400).json({ msg: "hand must be left or right" });
+    }
+
     const valueNum = Number(grip_value);
+
     if (Number.isNaN(valueNum) || valueNum < 0) {
       return res.status(400).json({ msg: "Invalid grip_value" });
     }
 
     await db.query(
-      "INSERT INTO grip_measurements (user_id, device_id, grip_value, hand) VALUES (?, ?, ?, ?)",
-      [user_id, device_id, valueNum, hand]
+      `
+      INSERT INTO tp_user_grip 
+        (user_id, device_id, hand, grip_value, measured_at)
+      VALUES (?, ?, ?, ?, NOW())
+      `,
+      [user_id, device_id, hand, valueNum]
     );
 
-    res.json({ msg: "Saved", device_id, grip_value: valueNum, hand });
+    res.json({
+      msg: "Saved",
+      user_id,
+      device_id,
+      grip_value: valueNum,
+      hand,
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Server error" });
+    console.error("IOT GRIP ERROR:", err.message);
+    res.status(500).json({ msg: "Server error", error: err.message });
   }
 });
 
-/** ดึงค่าล่าสุด */
+/**
+ * ดึงค่าล่าสุดจากเครื่องบีบมือ
+ * GET /api/iot/grip/latest
+ */
 router.get("/grip/latest", async (req, res) => {
   try {
-    const [rows] = await db.query(
-      "SELECT * FROM grip_measurements ORDER BY measured_at DESC, id DESC LIMIT 1"
+    const rows = await db.query(
+      `
+      SELECT 
+        g.grip_id,
+        g.user_id,
+        u.username,
+        u.full_name,
+        u.gender,
+        g.device_id,
+        g.hand,
+        g.grip_value,
+        g.measured_at
+      FROM tp_user_grip g
+      LEFT JOIN tp_user u 
+        ON g.user_id = u.user_id
+      ORDER BY g.measured_at DESC, g.grip_id DESC
+      LIMIT 1
+      `
     );
+
     res.json(rows[0] || null);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Server error" });
+    console.error("IOT LATEST ERROR:", err.message);
+    res.status(500).json({ msg: "Server error", error: err.message });
   }
 });
 
-/** ดึงย้อนหลัง (เช่น 20 รายการล่าสุด) */
+/**
+ * ดึงประวัติย้อนหลัง
+ * GET /api/iot/grip/history?limit=20
+ */
 router.get("/grip/history", async (req, res) => {
   try {
     const limit = Math.min(Number(req.query.limit || 20), 200);
-    const [rows] = await db.query(
-      "SELECT * FROM grip_measurements ORDER BY measured_at DESC, id DESC LIMIT ?",
+
+    const rows = await db.query(
+      `
+      SELECT 
+        g.grip_id,
+        g.user_id,
+        u.username,
+        u.full_name,
+        u.gender,
+        g.device_id,
+        g.hand,
+        g.grip_value,
+        g.measured_at
+      FROM tp_user_grip g
+      LEFT JOIN tp_user u 
+        ON g.user_id = u.user_id
+      ORDER BY g.measured_at DESC, g.grip_id DESC
+      LIMIT ?
+      `,
       [limit]
     );
+
     res.json(rows);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Server error" });
+    console.error("IOT HISTORY ERROR:", err.message);
+    res.status(500).json({ msg: "Server error", error: err.message });
   }
 });
 
-export default router;
+module.exports = router;

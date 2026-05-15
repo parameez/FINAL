@@ -7,7 +7,11 @@ router.get("/latest", async (req, res) => {
     const rows = await db.query(`
       SELECT 
         u.user_id,
+        u.username,
+        u.full_name,
         u.gender,
+        g.grip_id,
+        g.device_id,
         g.grip_value AS handgrip_strength,
         g.hand,
         g.measured_at
@@ -40,11 +44,16 @@ router.get("/user/:userId", async (req, res) => {
       SELECT 
         g.grip_id,
         g.user_id,
+        u.username,
+        u.full_name,
+        u.gender,
         g.device_id,
         g.hand,
         g.grip_value,
         g.measured_at
       FROM tp_user_grip g
+      LEFT JOIN tp_user u 
+        ON g.user_id = u.user_id
       WHERE g.user_id = ?
       ORDER BY g.measured_at DESC
       `,
@@ -69,12 +78,27 @@ router.post("/", async (req, res) => {
       });
     }
 
+    if (!["left", "right"].includes(hand)) {
+      return res.status(400).json({
+        msg: "hand must be left or right",
+      });
+    }
+
+    const valueNum = Number(grip_value);
+
+    if (Number.isNaN(valueNum) || valueNum <= 0) {
+      return res.status(400).json({
+        msg: "grip_value must be more than 0",
+      });
+    }
+
     const result = await db.query(
       `
-      INSERT INTO tp_user_grip (user_id, device_id, hand, grip_value, measured_at)
+      INSERT INTO tp_user_grip 
+        (user_id, device_id, hand, grip_value, measured_at)
       VALUES (?, ?, ?, ?, NOW())
       `,
-      [user_id, device_id || null, hand, grip_value]
+      [user_id, device_id || null, hand, valueNum]
     );
 
     res.status(201).json({
@@ -83,7 +107,7 @@ router.post("/", async (req, res) => {
       user_id,
       device_id: device_id || null,
       hand,
-      grip_value,
+      grip_value: valueNum,
     });
   } catch (err) {
     console.error("GRIP SAVE ERROR:", err.message);
