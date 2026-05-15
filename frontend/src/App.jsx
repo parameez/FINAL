@@ -9,6 +9,7 @@ import History from "./pages/History";
 import Result from "./pages/Result";
 import NavBar from "./components/NavBar";
 import AdminPanel from "./pages/AdminPanel";
+import DeviceConnect from "./pages/DeviceConnect";
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem("token");
@@ -44,6 +45,15 @@ export default function App() {
           element={
             <PrivateRoute>
               <AssessmentForm />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/device-connect"
+          element={
+            <PrivateRoute>
+              <DeviceConnect />
             </PrivateRoute>
           }
         />

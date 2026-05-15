@@ -22,7 +22,6 @@ const ageGroups = [
 ];
 
 export default function AssessmentForm() {
-  const [deviceId, setDeviceId] = useState("");
   const [gender, setGender] = useState("male");
   const [ageGroup, setAgeGroup] = useState("20-24");
   const [hand, setHand] = useState("right");
@@ -41,11 +40,6 @@ export default function AssessmentForm() {
   const onSubmit = async (e) => {
     e.preventDefault();
 
-    if (!deviceId || Number(deviceId) <= 0) {
-      alert("กรุณากรอก Device ID ให้ถูกต้อง");
-      return;
-    }
-
     if (!gripValue || Number(gripValue) <= 0) {
       alert("กรุณากรอกค่าแรงบีบมือให้ถูกต้อง");
       return;
@@ -55,7 +49,6 @@ export default function AssessmentForm() {
 
     try {
       const res = await API.post("/assessments", {
-        device_id: Number(deviceId),
         gender,
         age_group: ageGroup,
         hand,
@@ -122,31 +115,12 @@ export default function AssessmentForm() {
         >
           <h3 style={{ marginTop: 0, color: "#0f172a" }}>{title}</h3>
           <p style={{ marginBottom: 0, color: "#475569", lineHeight: 1.7 }}>
-            เลือกเพศและช่วงอายุ จากนั้นกรอก Device ID และค่าแรงบีบมือหน่วยกิโลกรัม
-            (kg) ระบบจะประเมินว่าอยู่ในระดับ อ่อน / ปกติ / แข็งแรง
+            เลือกเพศและช่วงอายุ จากนั้นกรอกค่าแรงบีบมือหน่วยกิโลกรัม (kg)
+            ระบบจะประเมินว่าอยู่ในระดับ อ่อน / ปกติ / แข็งแรง
           </p>
         </div>
 
         <form onSubmit={onSubmit}>
-          <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-            Device ID
-          </label>
-          <input
-            type="number"
-            min="1"
-            value={deviceId}
-            onChange={(e) => setDeviceId(e.target.value)}
-            placeholder="กรอก Device ID เช่น 1"
-            style={{
-              width: "100%",
-              padding: 12,
-              marginBottom: 14,
-              borderRadius: 12,
-              border: "1px solid #d8e4f2",
-              boxSizing: "border-box",
-            }}
-          />
-
           <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
             เพศ
           </label>

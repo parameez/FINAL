@@ -37,6 +37,10 @@ export default function NavBar() {
           เมนูสุขภาพ
         </Link>
 
+        <Link to="/device-connect" className="nav-link">
+          เชื่อมต่ออุปกรณ์
+        </Link>
+
         <button type="button" className="nav-link nav-button">
           ติดต่อ
         </button>

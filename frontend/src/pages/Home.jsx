@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 
 export default function Home() {
+  const token = localStorage.getItem("token");
+
   return (
     <main className="home-page">
       <section className="figma-hero">
@@ -17,12 +19,15 @@ export default function Home() {
           </p>
 
           <div className="figma-hero-buttons">
-            <Link to="/login" className="figma-main-btn">
-              บันทึกการวัด
-            </Link>
-            <Link to="/login" className="figma-sub-btn">
-              เข้าสู่ระบบ
-            </Link>
+            {token ? (
+              <Link to="/assessment" className="figma-main-btn">
+                บันทึกการวัด
+              </Link>
+            ) : (
+              <Link to="/login" className="figma-sub-btn">
+                เข้าสู่ระบบ
+              </Link>
+            )}
           </div>
         </div>
 
