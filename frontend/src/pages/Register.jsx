@@ -32,7 +32,10 @@ export default function Register() {
     <main className="auth-page">
       <div className="auth-panel">
         <div className="auth-brand">
-          <div className="auth-logo">⌁</div>
+          <Link to="/" className="auth-logo">
+            ⌁
+          </Link>
+
           <h1>Create Account</h1>
           <p>
             สมัครสมาชิกเพื่อเริ่มบันทึกค่าแรงบีบมือ ดูประวัติย้อนหลัง

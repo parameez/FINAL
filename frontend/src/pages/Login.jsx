@@ -27,7 +27,10 @@ export default function Login() {
     <main className="auth-page">
       <div className="auth-panel">
         <div className="auth-brand">
-          <div className="auth-logo">⌁</div>
+          <Link to="/" className="auth-logo">
+            ⌁
+          </Link>
+
           <h1>Handgrip Assessment System</h1>
           <p>เข้าสู่ระบบเพื่อติดตามค่าแรงบีบมือและผลประเมินสุขภาพ</p>
         </div>
