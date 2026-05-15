@@ -82,11 +82,7 @@ router.post("/", auth, async (req, res) => {
   try {
     const userId = req.userId;
 
-    const { device_id, gender, age_group, hand, grip_value, note } = req.body;
-
-    if (!device_id || Number(device_id) <= 0) {
-      return res.status(400).json({ msg: "กรุณากรอก Device ID ให้ถูกต้อง" });
-    }
+    const { gender, age_group, hand, grip_value, note } = req.body;
 
     if (!["male", "female"].includes(gender)) {
       return res.status(400).json({ msg: "กรุณาเลือกเพศให้ถูกต้อง" });
@@ -110,7 +106,6 @@ router.post("/", auth, async (req, res) => {
     const handText = hand === "right" ? "ขวา" : "ซ้าย";
 
     const detailNote =
-      `Device ID: ${device_id}, ` +
       `เพศ: ${genderText}, อายุ: ${age_group}, มือ: ${handText}, ` +
       `แรงบีบมือ: ${grip_value} kg` +
       (note ? `, หมายเหตุ: ${note}` : "");
@@ -124,7 +119,6 @@ router.post("/", auth, async (req, res) => {
 
     return res.json({
       msg: "บันทึกแบบประเมินสำเร็จ",
-      device_id: Number(device_id),
       score,
       result,
       advice,

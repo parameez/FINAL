@@ -4,6 +4,7 @@ import API from "../services/api";
 export default function History() {
   const [gripRows, setGripRows] = useState([]);
   const [assessRows, setAssessRows] = useState([]);
+  const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const userId = localStorage.getItem("userId");
@@ -25,6 +26,9 @@ export default function History() {
       setLoading(true);
 
       try {
+        const user = await API.get("/users/me");
+        setUserInfo(user.data || null);
+
         const g = await API.get(`/grip/user/${userId}`);
         setGripRows(g.data || []);
 
@@ -40,6 +44,26 @@ export default function History() {
 
     load();
   }, [userId]);
+
+  const displayName =
+    userInfo?.full_name ||
+    userInfo?.username ||
+    gripRows[0]?.full_name ||
+    gripRows[0]?.username ||
+    assessRows[0]?.full_name ||
+    assessRows[0]?.username ||
+    "-";
+
+  const displayGender =
+    userInfo?.gender ||
+    gripRows[0]?.gender ||
+    assessRows[0]?.gender ||
+    "other";
+
+  const displayDeviceId =
+    userInfo?.device_id ||
+    gripRows[0]?.device_id ||
+    "-";
 
   if (loading) {
     return (
@@ -60,6 +84,63 @@ export default function History() {
       <h1 className="section-title" style={{ textAlign: "center" }}>
         History
       </h1>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+          gap: 16,
+          marginBottom: 28,
+        }}
+      >
+        <div
+          style={{
+            background: "#f8fbff",
+            border: "1px solid #dbeafe",
+            borderRadius: 16,
+            padding: 18,
+          }}
+        >
+          <div style={{ color: "#64748b", marginBottom: 6 }}>ชื่อผู้ใช้</div>
+          <strong style={{ fontSize: 18 }}>{displayName}</strong>
+        </div>
+
+        <div
+          style={{
+            background: "#f8fbff",
+            border: "1px solid #dbeafe",
+            borderRadius: 16,
+            padding: 18,
+          }}
+        >
+          <div style={{ color: "#64748b", marginBottom: 6 }}>เพศ</div>
+          <strong style={{ fontSize: 18 }}>{genderText(displayGender)}</strong>
+        </div>
+
+        <div
+          style={{
+            background: "#f8fbff",
+            border: "1px solid #dbeafe",
+            borderRadius: 16,
+            padding: 18,
+          }}
+        >
+          <div style={{ color: "#64748b", marginBottom: 6 }}>User ID</div>
+          <strong style={{ fontSize: 18 }}>{userId || "-"}</strong>
+        </div>
+
+        <div
+          style={{
+            background: "#f8fbff",
+            border: "1px solid #dbeafe",
+            borderRadius: 16,
+            padding: 18,
+          }}
+        >
+          <div style={{ color: "#64748b", marginBottom: 6 }}>Device ID</div>
+          <strong style={{ fontSize: 18 }}>{displayDeviceId}</strong>
+        </div>
+      </div>
 
       <div className="section-block">
         <h2 className="sub-title">Grip History</h2>
