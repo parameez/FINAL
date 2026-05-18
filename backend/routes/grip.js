@@ -68,8 +68,6 @@ router.get("/user/:userId", async (req, res) => {
 });
 
 // บันทึกค่า grip จากบอร์ด
-// บอร์ดส่งมาแค่ device_id, hand, grip_value
-// ระบบจะบันทึกให้ user ทุกคนที่ผูก device_id นี้
 router.post("/", async (req, res) => {
   try {
     const { device_id, hand, grip_value } = req.body;
@@ -101,6 +99,7 @@ router.post("/", async (req, res) => {
       });
     }
 
+    // หา user ทุกคนที่ผูก device_id นี้
     const users = await db.query(
       `
       SELECT user_id
@@ -116,29 +115,32 @@ router.post("/", async (req, res) => {
       });
     }
 
-    const values = users.map((user) => [
-      user.user_id,
-      deviceIdNum,
-      hand,
-      valueNum,
-    ]);
+    const savedUsers = [];
 
-    await db.query(
-      `
-      INSERT INTO tp_user_grip
-        (user_id, device_id, hand, grip_value, measured_at)
-      VALUES ?
-      `,
-      [values]
-    );
+    // บันทึกให้ทุก user ทีละคน
+    for (const user of users) {
+      const result = await db.query(
+        `
+        INSERT INTO tp_user_grip 
+          (user_id, device_id, hand, grip_value, measured_at)
+        VALUES (?, ?, ?, ?, NOW())
+        `,
+        [user.user_id, deviceIdNum, hand, valueNum]
+      );
+
+      savedUsers.push({
+        user_id: user.user_id,
+        grip_id: result.insertId,
+      });
+    }
 
     res.status(201).json({
       msg: "Grip saved to all linked users",
       device_id: deviceIdNum,
       hand,
       grip_value: valueNum,
-      saved_users: users.map((u) => u.user_id),
-      total_saved: users.length,
+      total_saved: savedUsers.length,
+      saved_users: savedUsers,
     });
   } catch (err) {
     console.error("GRIP SAVE ERROR:", err.message);
