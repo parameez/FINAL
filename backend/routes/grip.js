@@ -67,8 +67,9 @@ router.get("/user/:userId", async (req, res) => {
   }
 });
 
-// บันทึกค่า grip ใหม่จากบอร์ด
+// บันทึกค่า grip จากบอร์ด
 // บอร์ดส่งมาแค่ device_id, hand, grip_value
+// ระบบจะบันทึกให้ user ทุกคนที่ผูก device_id นี้
 router.post("/", async (req, res) => {
   try {
     const { device_id, hand, grip_value } = req.body;
@@ -85,7 +86,14 @@ router.post("/", async (req, res) => {
       });
     }
 
+    const deviceIdNum = Number(device_id);
     const valueNum = Number(grip_value);
+
+    if (Number.isNaN(deviceIdNum) || deviceIdNum <= 0) {
+      return res.status(400).json({
+        msg: "device_id must be more than 0",
+      });
+    }
 
     if (Number.isNaN(valueNum) || valueNum <= 0) {
       return res.status(400).json({
@@ -93,15 +101,13 @@ router.post("/", async (req, res) => {
       });
     }
 
-    // หา user_id จาก device_id ที่ user ผูกไว้ในหน้าเว็บ
     const users = await db.query(
       `
       SELECT user_id
       FROM tp_user
       WHERE device_id = ?
-      LIMIT 1
       `,
-      [Number(device_id)]
+      [deviceIdNum]
     );
 
     if (!users || users.length === 0) {
@@ -110,24 +116,29 @@ router.post("/", async (req, res) => {
       });
     }
 
-    const user_id = users[0].user_id;
+    const values = users.map((user) => [
+      user.user_id,
+      deviceIdNum,
+      hand,
+      valueNum,
+    ]);
 
-    const result = await db.query(
+    await db.query(
       `
-      INSERT INTO tp_user_grip 
+      INSERT INTO tp_user_grip
         (user_id, device_id, hand, grip_value, measured_at)
-      VALUES (?, ?, ?, ?, NOW())
+      VALUES ?
       `,
-      [user_id, Number(device_id), hand, valueNum]
+      [values]
     );
 
     res.status(201).json({
-      msg: "Grip saved",
-      grip_id: result.insertId,
-      user_id,
-      device_id: Number(device_id),
+      msg: "Grip saved to all linked users",
+      device_id: deviceIdNum,
       hand,
       grip_value: valueNum,
+      saved_users: users.map((u) => u.user_id),
+      total_saved: users.length,
     });
   } catch (err) {
     console.error("GRIP SAVE ERROR:", err.message);
