@@ -67,14 +67,15 @@ router.get("/user/:userId", async (req, res) => {
   }
 });
 
-// บันทึกค่า grip ใหม่
+// บันทึกค่า grip ใหม่จากบอร์ด
+// บอร์ดส่งมาแค่ device_id, hand, grip_value
 router.post("/", async (req, res) => {
   try {
-    const { user_id, device_id, hand, grip_value } = req.body;
+    const { device_id, hand, grip_value } = req.body;
 
-    if (!user_id || !hand || grip_value === undefined) {
+    if (!device_id || !hand || grip_value === undefined) {
       return res.status(400).json({
-        msg: "user_id, hand, grip_value required",
+        msg: "device_id, hand, grip_value required",
       });
     }
 
@@ -92,20 +93,39 @@ router.post("/", async (req, res) => {
       });
     }
 
+    // หา user_id จาก device_id ที่ user ผูกไว้ในหน้าเว็บ
+    const users = await db.query(
+      `
+      SELECT user_id
+      FROM tp_user
+      WHERE device_id = ?
+      LIMIT 1
+      `,
+      [Number(device_id)]
+    );
+
+    if (!users || users.length === 0) {
+      return res.status(404).json({
+        msg: "ยังไม่มีผู้ใช้เชื่อมต่อ Device ID นี้",
+      });
+    }
+
+    const user_id = users[0].user_id;
+
     const result = await db.query(
       `
       INSERT INTO tp_user_grip 
         (user_id, device_id, hand, grip_value, measured_at)
       VALUES (?, ?, ?, ?, NOW())
       `,
-      [user_id, device_id || null, hand, valueNum]
+      [user_id, Number(device_id), hand, valueNum]
     );
 
     res.status(201).json({
       msg: "Grip saved",
       grip_id: result.insertId,
       user_id,
-      device_id: device_id || null,
+      device_id: Number(device_id),
       hand,
       grip_value: valueNum,
     });
