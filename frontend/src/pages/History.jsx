@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import API from "../services/api";
 
 export default function History() {
@@ -6,6 +6,9 @@ export default function History() {
   const [assessRows, setAssessRows] = useState([]);
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const [filterMonth, setFilterMonth] = useState("all");
+  const [filterYear, setFilterYear] = useState("all");
 
   const userId = localStorage.getItem("userId");
 
@@ -15,6 +18,21 @@ export default function History() {
     if (gender === "other") return "อื่น ๆ";
     return "-";
   };
+
+  const monthNames = [
+    "มกราคม",
+    "กุมภาพันธ์",
+    "มีนาคม",
+    "เมษายน",
+    "พฤษภาคม",
+    "มิถุนายน",
+    "กรกฎาคม",
+    "สิงหาคม",
+    "กันยายน",
+    "ตุลาคม",
+    "พฤศจิกายน",
+    "ธันวาคม",
+  ];
 
   useEffect(() => {
     const load = async () => {
@@ -55,15 +73,48 @@ export default function History() {
     "-";
 
   const displayGender =
-    userInfo?.gender ||
-    gripRows[0]?.gender ||
-    assessRows[0]?.gender ||
-    "other";
+    userInfo?.gender || gripRows[0]?.gender || assessRows[0]?.gender || "other";
 
-  const displayDeviceId =
-    userInfo?.device_id ||
-    gripRows[0]?.device_id ||
-    "-";
+  const displayDeviceId = userInfo?.device_id || gripRows[0]?.device_id || "-";
+
+  const yearOptions = useMemo(() => {
+    const years = new Set();
+
+    gripRows.forEach((row) => {
+      if (row.measured_at) {
+        years.add(new Date(row.measured_at).getFullYear());
+      }
+    });
+
+    assessRows.forEach((row) => {
+      if (row.created_at) {
+        years.add(new Date(row.created_at).getFullYear());
+      }
+    });
+
+    return [...years].sort((a, b) => b - a);
+  }, [gripRows, assessRows]);
+
+  const checkDateFilter = (dateValue) => {
+    if (!dateValue) return false;
+
+    const date = new Date(dateValue);
+    const month = String(date.getMonth() + 1);
+    const year = String(date.getFullYear());
+
+    const matchMonth = filterMonth === "all" || filterMonth === month;
+    const matchYear = filterYear === "all" || filterYear === year;
+
+    return matchMonth && matchYear;
+  };
+
+  const filteredGripRows = useMemo(() => {
+    return gripRows.filter((row) => checkDateFilter(row.measured_at));
+  }, [gripRows, filterMonth, filterYear]);
+
+  const filteredAssessRows = useMemo(() => {
+    return assessRows.filter((row) => checkDateFilter(row.created_at));
+  }, [assessRows, filterMonth, filterYear]);
 
   if (loading) {
     return (
@@ -88,7 +139,7 @@ export default function History() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
           gap: 16,
           marginBottom: 28,
         }}
@@ -142,10 +193,74 @@ export default function History() {
         </div>
       </div>
 
+      <div
+        style={{
+          display: "flex",
+          gap: 12,
+          flexWrap: "wrap",
+          alignItems: "center",
+          background: "#f8fbff",
+          border: "1px solid #dbeafe",
+          borderRadius: 16,
+          padding: 16,
+          marginBottom: 24,
+        }}
+      >
+        <strong>ตัวกรองประวัติ</strong>
+
+        <select
+          value={filterMonth}
+          onChange={(e) => setFilterMonth(e.target.value)}
+          style={{
+            height: 42,
+            borderRadius: 12,
+            border: "1px solid #dbeafe",
+            padding: "0 12px",
+          }}
+        >
+          <option value="all">ทุกเดือน</option>
+          {monthNames.map((name, index) => (
+            <option key={name} value={String(index + 1)}>
+              {name}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={filterYear}
+          onChange={(e) => setFilterYear(e.target.value)}
+          style={{
+            height: 42,
+            borderRadius: 12,
+            border: "1px solid #dbeafe",
+            padding: "0 12px",
+          }}
+        >
+          <option value="all">ทุกปี</option>
+          {yearOptions.map((year) => (
+            <option key={year} value={String(year)}>
+              {year}
+            </option>
+          ))}
+        </select>
+
+        <button
+          type="button"
+          className="figma-sub-btn"
+          onClick={() => {
+            setFilterMonth("all");
+            setFilterYear("all");
+          }}
+          style={{ height: 42 }}
+        >
+          ล้างตัวกรอง
+        </button>
+      </div>
+
       <div className="section-block">
         <h2 className="sub-title">Grip History</h2>
 
-        {gripRows.length === 0 ? (
+        {filteredGripRows.length === 0 ? (
           <div className="empty-state">ยังไม่มีประวัติการวัดแรงบีบมือ</div>
         ) : (
           <div className="table-wrap">
@@ -163,7 +278,7 @@ export default function History() {
               </thead>
 
               <tbody>
-                {gripRows.map((row) => (
+                {filteredGripRows.map((row) => (
                   <tr key={row.grip_id}>
                     <td>{row.grip_id}</td>
                     <td>{row.full_name || row.username || "-"}</td>
@@ -187,7 +302,7 @@ export default function History() {
       <div className="section-block">
         <h2 className="sub-title">Assessment History</h2>
 
-        {assessRows.length === 0 ? (
+        {filteredAssessRows.length === 0 ? (
           <div className="empty-state">ยังไม่มีประวัติการประเมิน</div>
         ) : (
           <div className="table-wrap">
@@ -206,7 +321,7 @@ export default function History() {
               </thead>
 
               <tbody>
-                {assessRows.map((row) => (
+                {filteredAssessRows.map((row) => (
                   <tr key={row.id}>
                     <td>{row.id}</td>
                     <td>{row.full_name || row.username || "-"}</td>

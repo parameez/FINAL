@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 import {
@@ -14,6 +14,7 @@ import {
 export default function Dashboard() {
   const [summary, setSummary] = useState(null);
   const [gripData, setGripData] = useState([]);
+  const [filterType, setFilterType] = useState("all");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,28 +36,63 @@ export default function Dashboard() {
     load();
   }, []);
 
+  const filteredGripData = useMemo(() => {
+    if (filterType === "all") return gripData;
+
+    const now = new Date();
+
+    return gripData.filter((item) => {
+      const date = new Date(item.measured_at);
+
+      if (filterType === "day") {
+        return (
+          date.getFullYear() === now.getFullYear() &&
+          date.getMonth() === now.getMonth() &&
+          date.getDate() === now.getDate()
+        );
+      }
+
+      if (filterType === "month") {
+        return (
+          date.getFullYear() === now.getFullYear() &&
+          date.getMonth() === now.getMonth()
+        );
+      }
+
+      return true;
+    });
+  }, [gripData, filterType]);
+
   if (!summary) {
     return <div className="content-card">Loading...</div>;
   }
 
-  const latestGrip = gripData.length > 0 ? gripData[0] : summary.latestGrip || null;
+  const latestGrip =
+    filteredGripData.length > 0
+      ? filteredGripData[0]
+      : summary.latestGrip || null;
 
   const avgGrip =
-    gripData.length > 0
+    filteredGripData.length > 0
       ? (
-          gripData.reduce((sum, item) => sum + Number(item.grip_value || 0), 0) /
-          gripData.length
+          filteredGripData.reduce(
+            (sum, item) => sum + Number(item.grip_value || 0),
+            0
+          ) / filteredGripData.length
         ).toFixed(2)
-      : Number(summary.avgGrip || 0).toFixed(2);
+      : "0.00";
 
-  const chartData = [...gripData].reverse().map((item) => ({
+  const chartData = [...filteredGripData].reverse().map((item) => ({
     ...item,
-    measured_label: new Date(item.measured_at).toLocaleDateString(),
+    measured_label: new Date(item.measured_at).toLocaleDateString("th-TH", {
+      day: "2-digit",
+      month: "short",
+    }),
   }));
 
   return (
     <div className="content-card">
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 16 }}>
+      <div className="dashboard-header">
         <div>
           <h1 className="section-title">Dashboard</h1>
           <p className="page-subtitle">
@@ -67,9 +103,33 @@ export default function Dashboard() {
         <button
           className="btn-primary"
           onClick={() => navigate("/assessment")}
-          style={{ height: 48 }}
         >
           เริ่มทำแบบประเมิน
+        </button>
+      </div>
+
+      <div className="filter-row">
+        <button
+          className={filterType === "all" ? "filter-btn active" : "filter-btn"}
+          onClick={() => setFilterType("all")}
+        >
+          ทั้งหมด
+        </button>
+
+        <button
+          className={filterType === "day" ? "filter-btn active" : "filter-btn"}
+          onClick={() => setFilterType("day")}
+        >
+          วันนี้
+        </button>
+
+        <button
+          className={
+            filterType === "month" ? "filter-btn active" : "filter-btn"
+          }
+          onClick={() => setFilterType("month")}
+        >
+          เดือนนี้
         </button>
       </div>
 
@@ -78,7 +138,9 @@ export default function Dashboard() {
           <h3>Grip ล่าสุด</h3>
           <p>
             {latestGrip
-              ? `${latestGrip.grip_value} kg (${latestGrip.hand})`
+              ? `${latestGrip.grip_value} kg (${
+                  latestGrip.hand === "right" ? "ขวา" : "ซ้าย"
+                })`
               : "ไม่มีข้อมูล"}
           </p>
         </div>
@@ -90,7 +152,7 @@ export default function Dashboard() {
 
         <div className="stat-box">
           <h3>จำนวนครั้งที่วัด</h3>
-          <p>{gripData.length}</p>
+          <p>{filteredGripData.length}</p>
         </div>
       </div>
 
@@ -100,17 +162,8 @@ export default function Dashboard() {
         {chartData.length === 0 ? (
           <div className="empty-state">ยังไม่มีข้อมูลกราฟ</div>
         ) : (
-          <div
-            style={{
-              width: "100%",
-              height: 320,
-              background: "#fff",
-              borderRadius: "16px",
-              padding: "16px",
-              border: "1px solid #edf2ff",
-            }}
-          >
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="chart-card">
+            <ResponsiveContainer width="100%" height={320}>
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="measured_label" />
@@ -120,7 +173,7 @@ export default function Dashboard() {
                     if (payload && payload.length > 0) {
                       return new Date(
                         payload[0].payload.measured_at
-                      ).toLocaleString();
+                      ).toLocaleString("th-TH");
                     }
                     return "";
                   }}
@@ -128,8 +181,9 @@ export default function Dashboard() {
                 <Line
                   type="monotone"
                   dataKey="grip_value"
-                  stroke="#8884d8"
-                  strokeWidth={2}
+                  stroke="#2563eb"
+                  strokeWidth={3}
+                  dot={{ r: 4 }}
                 />
               </LineChart>
             </ResponsiveContainer>
