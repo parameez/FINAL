@@ -1,7 +1,47 @@
 import { Link } from "react-router-dom";
+import { useRef } from "react";
 
 export default function Home() {
   const token = localStorage.getItem("token");
+
+  const video1Ref = useRef(null);
+  const video2Ref = useRef(null);
+
+  const pauseVideo = (iframeRef) => {
+    if (!iframeRef.current) return;
+
+    iframeRef.current.contentWindow.postMessage(
+      JSON.stringify({
+        event: "command",
+        func: "pauseVideo",
+        args: [],
+      }),
+      "*"
+    );
+  };
+
+  const playVideo = (iframeRef) => {
+    if (!iframeRef.current) return;
+
+    iframeRef.current.contentWindow.postMessage(
+      JSON.stringify({
+        event: "command",
+        func: "playVideo",
+        args: [],
+      }),
+      "*"
+    );
+  };
+
+  const handlePlayVideo1 = () => {
+    pauseVideo(video2Ref);
+    playVideo(video1Ref);
+  };
+
+  const handlePlayVideo2 = () => {
+    pauseVideo(video1Ref);
+    playVideo(video2Ref);
+  };
 
   return (
     <main className="home-page">
@@ -10,7 +50,9 @@ export default function Home() {
           <h1>
             ระบบวัดค่า
             <br />
-            กล้ามเนื้อมืออ่อนแรง
+            กล้ามเนื้อมือ
+            <br />
+            อ่อนแรง
           </h1>
 
           <p>
@@ -32,11 +74,24 @@ export default function Home() {
         </div>
 
         <div className="figma-hero-image">
+          <h3
+            style={{
+              textAlign: "center",
+              marginBottom: 12,
+              color: "#0f172a",
+              fontSize: 20,
+              fontWeight: 800,
+            }}
+          >
+            เรียนรู้เรื่องโรคกล้ามเนื้อมืออ่อนแรง
+          </h3>
+
           <div className="video-card">
             <iframe
+              ref={video1Ref}
               className="youtube-video"
-              src="https://www.youtube.com/embed/mUHRXV30Nhk?autoplay=1&mute=1&loop=1&playlist=mUHRXV30Nhk"
-              title="Hand Grip Video"
+              src="https://www.youtube.com/embed/pUN9OUGqZzA?enablejsapi=1"
+              title="เรียนรู้เรื่องโรคกล้ามเนื้อมืออ่อนแรง"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
@@ -45,25 +100,83 @@ export default function Home() {
       </section>
 
       <section className="steps">
-        <h2>✅ วิธีการทำงาน</h2>
+        <h2>✅ วิธีใช้งาน</h2>
 
         <div className="step-grid">
           <div className="step-card">
-            <div className="step-icon">👏</div>
-            <h3>เชื่อมต่ออุปกรณ์</h3>
-            <p>รับค่าจาก ESP8266 และส่งข้อมูลเข้าสู่ระบบ</p>
+            <div className="step-icon">▶️</div>
+            <h3>คลิปที่ 1: เรียนรู้เรื่องโรคกล้ามเนื้อมืออ่อนแรง</h3>
+            <p>ทำความเข้าใจเกี่ยวกับภาวะกล้ามเนื้อมืออ่อนแรงเบื้องต้น</p>
+
+            <button
+              type="button"
+              className="figma-main-btn"
+              onClick={handlePlayVideo1}
+              style={{
+                marginTop: 12,
+                marginBottom: 12,
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              เปิดคลิปที่ 1
+            </button>
+
+            <div
+              className="video-card"
+              style={{
+                marginTop: 14,
+                width: "100%",
+                boxShadow: "none",
+              }}
+            >
+              <iframe
+                ref={video1Ref}
+                className="youtube-video"
+                src="https://www.youtube.com/embed/pUN9OUGqZzA?enablejsapi=1"
+                title="คลิปที่ 1 เรียนรู้เรื่องโรคกล้ามเนื้อมืออ่อนแรง"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
           </div>
 
           <div className="step-card">
-            <div className="step-icon">📊</div>
-            <h3>บันทึกและตรวจสอบผล</h3>
-            <p>ดูค่า Grip ล่าสุด ค่าเฉลี่ย และแนวโน้มย้อนหลัง</p>
-          </div>
+            <div className="step-icon">📌</div>
+            <h3>คลิปที่ 2: วิธีใช้งานระบบ</h3>
+            <p>แนะนำขั้นตอนการใช้งานระบบและการดูผลการวัดแรงบีบมือ</p>
 
-          <div className="step-card">
-            <div className="step-icon">🩺</div>
-            <h3>ประเมินสุขภาพมือ</h3>
-            <p>ระบบช่วยประเมินระดับกล้ามเนื้อมืออ่อนแรงเบื้องต้น</p>
+            <button
+              type="button"
+              className="figma-main-btn"
+              onClick={handlePlayVideo2}
+              style={{
+                marginTop: 12,
+                marginBottom: 12,
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              เปิดคลิปที่ 2
+            </button>
+
+            <div
+              className="video-card"
+              style={{
+                marginTop: 14,
+                width: "100%",
+                boxShadow: "none",
+              }}
+            >
+              <iframe
+                ref={video2Ref}
+                className="youtube-video"
+                src="https://www.youtube.com/embed/7DsXcJ66Rrc?enablejsapi=1"
+                title="คลิปที่ 2 วิธีใช้งานระบบ"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
           </div>
         </div>
       </section>
