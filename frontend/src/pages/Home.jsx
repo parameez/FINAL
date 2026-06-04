@@ -37,10 +37,11 @@ export default function Home() {
           <h3
             style={{
               textAlign: "center",
-              marginBottom: 12,
+              marginBottom: 14,
               color: "#0f172a",
               fontSize: 20,
               fontWeight: 800,
+              lineHeight: 1.4,
             }}
           >
             เรียนรู้เรื่องโรคกล้ามเนื้อมืออ่อนแรง
@@ -61,18 +62,12 @@ export default function Home() {
       <section className="steps">
         <h2>✅ วิธีใช้งาน</h2>
 
-        <div className="step-grid">
-          <div className="step-card">
-            <div className="step-icon">▶️</div>
-
-            <h3>เรียนรู้เรื่องโรคกล้ามเนื้อมืออ่อนแรง</h3>
-
-            <p>
-              ทำความเข้าใจเกี่ยวกับภาวะกล้ามเนื้อมืออ่อนแรงเบื้องต้น
-              เพื่อให้ผู้ใช้รู้จักอาการ สาเหตุ และแนวทางดูแลสุขภาพมือ
-            </p>
-          </div>
-
+        <div
+          className="step-grid"
+          style={{
+            gridTemplateColumns: "1fr",
+          }}
+        >
           <div className="step-card">
             <div className="step-icon">📌</div>
 
@@ -88,6 +83,7 @@ export default function Home() {
               style={{
                 marginTop: 14,
                 width: "100%",
+                maxWidth: 720,
                 boxShadow: "none",
               }}
             >
