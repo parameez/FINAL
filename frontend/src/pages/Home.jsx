@@ -1,7 +1,52 @@
 import { Link } from "react-router-dom";
+import { useEffect, useRef } from "react";
 
 export default function Home() {
   const token = localStorage.getItem("token");
+
+  const topPlayerRef = useRef(null);
+  const bottomPlayerRef = useRef(null);
+
+  useEffect(() => {
+    const loadYouTubeAPI = () => {
+      if (window.YT && window.YT.Player) {
+        createPlayers();
+        return;
+      }
+
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.body.appendChild(tag);
+
+      window.onYouTubeIframeAPIReady = createPlayers;
+    };
+
+    const createPlayers = () => {
+      if (!window.YT || !window.YT.Player) return;
+
+      topPlayerRef.current = new window.YT.Player("top-video", {
+        events: {
+          onStateChange: (event) => {
+            if (event.data === window.YT.PlayerState.PLAYING) {
+              bottomPlayerRef.current?.pauseVideo();
+            }
+          },
+        },
+      });
+
+      bottomPlayerRef.current = new window.YT.Player("bottom-video", {
+        events: {
+          onStateChange: (event) => {
+            if (event.data === window.YT.PlayerState.PLAYING) {
+              topPlayerRef.current?.pauseVideo();
+            }
+          },
+        },
+      });
+    };
+
+    loadYouTubeAPI();
+  }, []);
 
   return (
     <main className="home-page">
@@ -33,15 +78,25 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="figma-hero-image">
+        <div
+          className="figma-hero-image"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 14,
+          }}
+        >
           <h3
             style={{
               textAlign: "center",
-              marginBottom: 14,
               color: "#0f172a",
               fontSize: 20,
               fontWeight: 800,
               lineHeight: 1.4,
+              margin: 0,
+              width: "100%",
             }}
           >
             เรียนรู้เรื่องโรคกล้ามเนื้อมืออ่อนแรง
@@ -49,8 +104,9 @@ export default function Home() {
 
           <div className="video-card">
             <iframe
+              id="top-video"
               className="youtube-video"
-              src="https://www.youtube.com/embed/pUN9OUGqZzA"
+              src="https://www.youtube.com/embed/pUN9OUGqZzA?enablejsapi=1"
               title="เรียนรู้เรื่องโรคกล้ามเนื้อมืออ่อนแรง"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
@@ -88,8 +144,9 @@ export default function Home() {
               }}
             >
               <iframe
+                id="bottom-video"
                 className="youtube-video"
-                src="https://www.youtube.com/embed/7DsXcJ66Rrc"
+                src="https://www.youtube.com/embed/7DsXcJ66Rrc?enablejsapi=1"
                 title="วิธีการใช้งาน Website"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
