@@ -1,47 +1,7 @@
 import { Link } from "react-router-dom";
-import { useRef } from "react";
 
 export default function Home() {
   const token = localStorage.getItem("token");
-
-  const video1Ref = useRef(null);
-  const video2Ref = useRef(null);
-
-  const pauseVideo = (iframeRef) => {
-    if (!iframeRef.current) return;
-
-    iframeRef.current.contentWindow.postMessage(
-      JSON.stringify({
-        event: "command",
-        func: "pauseVideo",
-        args: [],
-      }),
-      "*"
-    );
-  };
-
-  const playVideo = (iframeRef) => {
-    if (!iframeRef.current) return;
-
-    iframeRef.current.contentWindow.postMessage(
-      JSON.stringify({
-        event: "command",
-        func: "playVideo",
-        args: [],
-      }),
-      "*"
-    );
-  };
-
-  const handlePlayVideo1 = () => {
-    pauseVideo(video2Ref);
-    playVideo(video1Ref);
-  };
-
-  const handlePlayVideo2 = () => {
-    pauseVideo(video1Ref);
-    playVideo(video2Ref);
-  };
 
   return (
     <main className="home-page">
@@ -88,9 +48,8 @@ export default function Home() {
 
           <div className="video-card">
             <iframe
-              ref={video1Ref}
               className="youtube-video"
-              src="https://www.youtube.com/embed/pUN9OUGqZzA?enablejsapi=1"
+              src="https://www.youtube.com/embed/pUN9OUGqZzA"
               title="เรียนรู้เรื่องโรคกล้ามเนื้อมืออ่อนแรง"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
@@ -105,60 +64,24 @@ export default function Home() {
         <div className="step-grid">
           <div className="step-card">
             <div className="step-icon">▶️</div>
-            <h3>คลิปที่ 1: เรียนรู้เรื่องโรคกล้ามเนื้อมืออ่อนแรง</h3>
-            <p>ทำความเข้าใจเกี่ยวกับภาวะกล้ามเนื้อมืออ่อนแรงเบื้องต้น</p>
 
-            <button
-              type="button"
-              className="figma-main-btn"
-              onClick={handlePlayVideo1}
-              style={{
-                marginTop: 12,
-                marginBottom: 12,
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              เปิดคลิปที่ 1
-            </button>
+            <h3>เรียนรู้เรื่องโรคกล้ามเนื้อมืออ่อนแรง</h3>
 
-            <div
-              className="video-card"
-              style={{
-                marginTop: 14,
-                width: "100%",
-                boxShadow: "none",
-              }}
-            >
-              <iframe
-                ref={video1Ref}
-                className="youtube-video"
-                src="https://www.youtube.com/embed/pUN9OUGqZzA?enablejsapi=1"
-                title="คลิปที่ 1 เรียนรู้เรื่องโรคกล้ามเนื้อมืออ่อนแรง"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
+            <p>
+              ทำความเข้าใจเกี่ยวกับภาวะกล้ามเนื้อมืออ่อนแรงเบื้องต้น
+              เพื่อให้ผู้ใช้รู้จักอาการ สาเหตุ และแนวทางดูแลสุขภาพมือ
+            </p>
           </div>
 
           <div className="step-card">
             <div className="step-icon">📌</div>
-            <h3>คลิปที่ 2: วิธีใช้งานระบบ</h3>
-            <p>แนะนำขั้นตอนการใช้งานระบบและการดูผลการวัดแรงบีบมือ</p>
 
-            <button
-              type="button"
-              className="figma-main-btn"
-              onClick={handlePlayVideo2}
-              style={{
-                marginTop: 12,
-                marginBottom: 12,
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              เปิดคลิปที่ 2
-            </button>
+            <h3>วิธีการใช้งาน Website</h3>
+
+            <p>
+              แนะนำขั้นตอนการใช้งานระบบ การเชื่อมต่ออุปกรณ์
+              การบันทึกค่าแรงบีบมือ และการดูผลย้อนหลัง
+            </p>
 
             <div
               className="video-card"
@@ -169,10 +92,9 @@ export default function Home() {
               }}
             >
               <iframe
-                ref={video2Ref}
                 className="youtube-video"
-                src="https://www.youtube.com/embed/7DsXcJ66Rrc?enablejsapi=1"
-                title="คลิปที่ 2 วิธีใช้งานระบบ"
+                src="https://www.youtube.com/embed/7DsXcJ66Rrc"
+                title="วิธีการใช้งาน Website"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
