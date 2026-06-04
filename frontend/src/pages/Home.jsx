@@ -8,44 +8,45 @@ export default function Home() {
   const bottomPlayerRef = useRef(null);
 
   useEffect(() => {
-    const loadYouTubeAPI = () => {
-      if (window.YT && window.YT.Player) {
-        createPlayers();
-        return;
-      }
-
-      const tag = document.createElement("script");
-      tag.src = "https://www.youtube.com/iframe_api";
-      document.body.appendChild(tag);
-
-      window.onYouTubeIframeAPIReady = createPlayers;
-    };
-
     const createPlayers = () => {
       if (!window.YT || !window.YT.Player) return;
 
-      topPlayerRef.current = new window.YT.Player("top-video", {
-        events: {
-          onStateChange: (event) => {
-            if (event.data === window.YT.PlayerState.PLAYING) {
-              bottomPlayerRef.current?.pauseVideo();
-            }
+      if (!topPlayerRef.current) {
+        topPlayerRef.current = new window.YT.Player("top-video", {
+          events: {
+            onStateChange: (event) => {
+              if (event.data === window.YT.PlayerState.PLAYING) {
+                bottomPlayerRef.current?.pauseVideo();
+              }
+            },
           },
-        },
-      });
+        });
+      }
 
-      bottomPlayerRef.current = new window.YT.Player("bottom-video", {
-        events: {
-          onStateChange: (event) => {
-            if (event.data === window.YT.PlayerState.PLAYING) {
-              topPlayerRef.current?.pauseVideo();
-            }
+      if (!bottomPlayerRef.current) {
+        bottomPlayerRef.current = new window.YT.Player("bottom-video", {
+          events: {
+            onStateChange: (event) => {
+              if (event.data === window.YT.PlayerState.PLAYING) {
+                topPlayerRef.current?.pauseVideo();
+              }
+            },
           },
-        },
-      });
+        });
+      }
     };
 
-    loadYouTubeAPI();
+    if (window.YT && window.YT.Player) {
+      createPlayers();
+    } else {
+      window.onYouTubeIframeAPIReady = createPlayers;
+
+      if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
+        const tag = document.createElement("script");
+        tag.src = "https://www.youtube.com/iframe_api";
+        document.body.appendChild(tag);
+      }
+    }
   }, []);
 
   return (
@@ -135,22 +136,30 @@ export default function Home() {
             </p>
 
             <div
-              className="video-card"
               style={{
                 marginTop: 14,
                 width: "100%",
-                maxWidth: 720,
-                boxShadow: "none",
+                display: "flex",
+                justifyContent: "center",
               }}
             >
-              <iframe
-                id="bottom-video"
-                className="youtube-video"
-                src="https://www.youtube.com/embed/7DsXcJ66Rrc?enablejsapi=1"
-                title="วิธีการใช้งาน Website"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
+              <div
+                className="video-card"
+                style={{
+                  width: "100%",
+                  maxWidth: 720,
+                  boxShadow: "none",
+                }}
+              >
+                <iframe
+                  id="bottom-video"
+                  className="youtube-video"
+                  src="https://www.youtube.com/embed/7DsXcJ66Rrc?enablejsapi=1"
+                  title="วิธีการใช้งาน Website"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
             </div>
           </div>
         </div>
