@@ -1253,3 +1253,23 @@ td {
     height: 260px;
   }
 }
+.steps .step-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.steps .video-card {
+  aspect-ratio: 16 / 9;
+  height: auto;
+}
+
+.steps .youtube-video {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+@media (max-width: 768px) {
+  .steps .step-grid {
+    grid-template-columns: 1fr;
+  }
+}
