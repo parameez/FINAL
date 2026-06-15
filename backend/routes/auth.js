@@ -18,7 +18,7 @@ function signToken(user) {
 // ================= REGISTER =================
 router.post("/register", async (req, res) => {
   try {
-    const { username, password, full_name, gender } = req.body;
+    const { username, password, full_name, gender, birth_date } = req.body;
 
     if (!username || !password) {
       return res.status(400).json({ msg: "ต้องมี username และ password" });
@@ -26,6 +26,10 @@ router.post("/register", async (req, res) => {
 
     if (String(password).length < 6) {
       return res.status(400).json({ msg: "รหัสผ่านต้องอย่างน้อย 6 ตัวอักษร" });
+    }
+
+    if (!birth_date) {
+      return res.status(400).json({ msg: "กรุณาระบุวันเกิด" });
     }
 
     const exist = await db.query(
@@ -41,16 +45,33 @@ router.post("/register", async (req, res) => {
 
     await db.query(
       `INSERT INTO tp_user
-        (user_id, username, password_hash, full_name, gender, role, is_blocked)
-       SELECT COALESCE(MAX(user_id), 0) + 1, ?, ?, ?, ?, 'user', 0
+        (
+          user_id, 
+          username, 
+          password_hash, 
+          full_name, 
+          gender, 
+          birth_date,
+          role, 
+          is_blocked
+        )
+       SELECT 
+          COALESCE(MAX(user_id), 0) + 1, 
+          ?, 
+          ?, 
+          ?, 
+          ?, 
+          ?,
+          'user', 
+          0
        FROM tp_user`,
-      [username, hashed, full_name || null, gender || "other"]
+      [username, hashed, full_name || null, gender || "other", birth_date]
     );
 
     return res.json({ msg: "สมัครสมาชิกสำเร็จ" });
   } catch (err) {
     console.error("REGISTER ERROR:", err);
-    return res.status(500).json({ msg: "Server error" });
+    return res.status(500).json({ msg: "Server error", error: err.message });
   }
 });
 
@@ -64,7 +85,15 @@ router.post("/login", async (req, res) => {
     }
 
     const rows = await db.query(
-      `SELECT user_id, username, password_hash, full_name, gender, role, is_blocked
+      `SELECT 
+          user_id, 
+          username, 
+          password_hash, 
+          full_name, 
+          gender, 
+          birth_date,
+          role, 
+          is_blocked
        FROM tp_user
        WHERE username = ?
        LIMIT 1`,
@@ -95,12 +124,13 @@ router.post("/login", async (req, res) => {
         username: user.username,
         full_name: user.full_name,
         gender: user.gender,
+        birth_date: user.birth_date,
         role: user.role || "user",
       },
     });
   } catch (err) {
     console.error("LOGIN ERROR:", err);
-    return res.status(500).json({ msg: "Server error" });
+    return res.status(500).json({ msg: "Server error", error: err.message });
   }
 });
 
@@ -114,22 +144,33 @@ router.get("/me", async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     const rows = await db.query(
-      `SELECT user_id, username, full_name, gender, role, is_blocked
+      `SELECT 
+          user_id, 
+          username, 
+          full_name, 
+          gender, 
+          birth_date,
+          role, 
+          is_blocked
        FROM tp_user
        WHERE user_id = ?
        LIMIT 1`,
       [decoded.userId]
     );
 
-    if (rows.length === 0) return res.status(404).json({ msg: "User not found" });
+    if (rows.length === 0) {
+      return res.status(404).json({ msg: "User not found" });
+    }
 
     const user = rows[0];
+
     return res.json({
       user: {
         userId: user.user_id,
         username: user.username,
         full_name: user.full_name,
         gender: user.gender,
+        birth_date: user.birth_date,
         role: user.role || "user",
         is_blocked: Number(user.is_blocked),
       },
@@ -146,7 +187,7 @@ router.get("/me", async (req, res) => {
  * ALLOW_DEV_RESET=1
  *
  * POST /api/auth/dev-reset-password
- * body: { username, new_password, new_role? }  // new_role เช่น 'admin'
+ * body: { username, new_password, new_role? }
  */
 router.post("/dev-reset-password", async (req, res) => {
   try {
@@ -190,7 +231,7 @@ router.post("/dev-reset-password", async (req, res) => {
     return res.json({ msg: "รีเซ็ตรหัสผ่านสำเร็จ" });
   } catch (err) {
     console.error("DEV RESET ERROR:", err);
-    return res.status(500).json({ msg: "Server error" });
+    return res.status(500).json({ msg: "Server error", error: err.message });
   }
 });
 

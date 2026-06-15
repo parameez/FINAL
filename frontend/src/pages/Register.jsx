@@ -8,6 +8,7 @@ export default function Register() {
     password: "",
     full_name: "",
     gender: "other",
+    birth_date: "",
   });
 
   const nav = useNavigate();
@@ -18,6 +19,11 @@ export default function Register() {
 
   const submit = async (e) => {
     e.preventDefault();
+
+    if (!form.birth_date) {
+      alert("กรุณาระบุวันเกิด");
+      return;
+    }
 
     try {
       await API.post("/auth/register", form);
@@ -53,6 +59,7 @@ export default function Register() {
               placeholder="Username"
               value={form.username}
               onChange={onChange}
+              required
             />
 
             <input
@@ -61,6 +68,7 @@ export default function Register() {
               type="password"
               value={form.password}
               onChange={onChange}
+              required
             />
 
             <input
@@ -68,6 +76,7 @@ export default function Register() {
               placeholder="Full name"
               value={form.full_name}
               onChange={onChange}
+              required
             />
 
             <select name="gender" value={form.gender} onChange={onChange}>
@@ -75,6 +84,25 @@ export default function Register() {
               <option value="male">Male</option>
               <option value="female">Female</option>
             </select>
+
+            <label
+              style={{
+                display: "block",
+                marginTop: 12,
+                marginBottom: 8,
+                fontWeight: 600,
+              }}
+            >
+              วันเกิด
+            </label>
+
+            <input
+              name="birth_date"
+              type="date"
+              value={form.birth_date}
+              onChange={onChange}
+              required
+            />
 
             <button type="submit" className="main-btn">
               Register

@@ -19,6 +19,13 @@ export default function History() {
     return "-";
   };
 
+  const resultText = (result) => {
+    if (result === "อ่อน") return "อ่อน";
+    if (result === "ปกติ") return "ปกติ";
+    if (result === "แข็งแรง") return "แข็งแรง";
+    return result || "-";
+  };
+
   const monthNames = [
     "มกราคม",
     "กุมภาพันธ์",
@@ -77,6 +84,12 @@ export default function History() {
 
   const displayDeviceId = userInfo?.device_id || gripRows[0]?.device_id || "-";
 
+  const displayBirthDate =
+    userInfo?.birth_date ||
+    gripRows[0]?.birth_date ||
+    assessRows[0]?.birth_date ||
+    "-";
+
   const yearOptions = useMemo(() => {
     const years = new Set();
 
@@ -128,7 +141,7 @@ export default function History() {
     <div
       className="content-card"
       style={{
-        maxWidth: 1100,
+        maxWidth: 1200,
         margin: "0 auto",
       }}
     >
@@ -176,8 +189,12 @@ export default function History() {
             padding: 18,
           }}
         >
-          <div style={{ color: "#64748b", marginBottom: 6 }}>User ID</div>
-          <strong style={{ fontSize: 18 }}>{userId || "-"}</strong>
+          <div style={{ color: "#64748b", marginBottom: 6 }}>วันเกิด</div>
+          <strong style={{ fontSize: 18 }}>
+            {displayBirthDate !== "-"
+              ? new Date(displayBirthDate).toLocaleDateString("th-TH")
+              : "-"}
+          </strong>
         </div>
 
         <div
@@ -273,6 +290,11 @@ export default function History() {
                   <th>Device ID</th>
                   <th>Hand</th>
                   <th>Grip Value</th>
+                  <th>อายุ</th>
+                  <th>ช่วงอายุ</th>
+                  <th>ผลประเมิน</th>
+                  <th>คะแนน</th>
+                  <th>คำแนะนำ</th>
                   <th>Measured At</th>
                 </tr>
               </thead>
@@ -286,9 +308,14 @@ export default function History() {
                     <td>{row.device_id ?? "-"}</td>
                     <td>{row.hand === "right" ? "ขวา" : "ซ้าย"}</td>
                     <td>{row.grip_value} kg</td>
+                    <td>{row.age ?? "-"}</td>
+                    <td>{row.age_group || "-"}</td>
+                    <td>{resultText(row.result)}</td>
+                    <td>{row.score ?? "-"}</td>
+                    <td>{row.advice || "-"}</td>
                     <td>
                       {row.measured_at
-                        ? new Date(row.measured_at).toLocaleString()
+                        ? new Date(row.measured_at).toLocaleString("th-TH")
                         : "-"}
                     </td>
                   </tr>
@@ -332,7 +359,7 @@ export default function History() {
                     <td>{row.note || "-"}</td>
                     <td>
                       {row.created_at
-                        ? new Date(row.created_at).toLocaleString()
+                        ? new Date(row.created_at).toLocaleString("th-TH")
                         : "-"}
                     </td>
                   </tr>
