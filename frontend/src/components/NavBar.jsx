@@ -40,17 +40,9 @@ export default function NavBar() {
         <Link to="/device-connect" className="nav-link">
           เชื่อมต่ออุปกรณ์
         </Link>
-
-        <button type="button" className="nav-link nav-button">
-          ติดต่อ
-        </button>
       </div>
 
       <div className="navbar-right">
-        <button type="button" className="search-btn">
-          ค้นหา
-        </button>
-
         {token ? (
           <>
             <div className="user-chip">👤 {username || "User"}</div>
