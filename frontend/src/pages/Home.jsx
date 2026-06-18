@@ -128,7 +128,7 @@ export default function Home() {
           <div className="step-card">
             <div className="step-icon">📌</div>
 
-            <h3>วิธีการใช้งาน Website</h3>
+            <h3>วิธีการใช้งาน เครื่องมือและWebsite</h3>
 
             <p>
               แนะนำขั้นตอนการใช้งานระบบ การเชื่อมต่ออุปกรณ์
