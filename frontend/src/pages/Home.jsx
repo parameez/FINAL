@@ -157,8 +157,6 @@ export default function Home() {
       </section>
 
       <section className="steps">
-        <h2>✅ วิธีใช้งาน</h2>
-
         <div
           className="step-grid"
           style={{
