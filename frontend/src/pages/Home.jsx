@@ -5,9 +5,47 @@ export default function Home() {
   const token = localStorage.getItem("token");
 
   const topPlayerRef = useRef(null);
-  const bottomPlayerRef = useRef(null);
+  const bottomLeftPlayerRef = useRef(null);
+  const bottomRightPlayerRef = useRef(null);
 
   useEffect(() => {
+    const pauseOthers = (currentPlayer) => {
+      const players = [
+        topPlayerRef.current,
+        bottomLeftPlayerRef.current,
+        bottomRightPlayerRef.current,
+      ];
+
+      players.forEach((player) => {
+        if (player && player !== currentPlayer) {
+          try {
+            player.pauseVideo();
+          } catch (error) {
+            console.log("pause error:", error);
+          }
+        }
+      });
+    };
+
+    const loadYouTubeAPI = () => {
+      if (window.YT && window.YT.Player) {
+        createPlayers();
+        return;
+      }
+
+      const oldScript = document.querySelector(
+        'script[src="https://www.youtube.com/iframe_api"]'
+      );
+
+      if (!oldScript) {
+        const tag = document.createElement("script");
+        tag.src = "https://www.youtube.com/iframe_api";
+        document.body.appendChild(tag);
+      }
+
+      window.onYouTubeIframeAPIReady = createPlayers;
+    };
+
     const createPlayers = () => {
       if (!window.YT || !window.YT.Player) return;
 
@@ -16,19 +54,31 @@ export default function Home() {
           events: {
             onStateChange: (event) => {
               if (event.data === window.YT.PlayerState.PLAYING) {
-                bottomPlayerRef.current?.pauseVideo();
+                pauseOthers(topPlayerRef.current);
               }
             },
           },
         });
       }
 
-      if (!bottomPlayerRef.current) {
-        bottomPlayerRef.current = new window.YT.Player("bottom-video", {
+      if (!bottomLeftPlayerRef.current) {
+        bottomLeftPlayerRef.current = new window.YT.Player("bottom-left-video", {
           events: {
             onStateChange: (event) => {
               if (event.data === window.YT.PlayerState.PLAYING) {
-                topPlayerRef.current?.pauseVideo();
+                pauseOthers(bottomLeftPlayerRef.current);
+              }
+            },
+          },
+        });
+      }
+
+      if (!bottomRightPlayerRef.current) {
+        bottomRightPlayerRef.current = new window.YT.Player("bottom-right-video", {
+          events: {
+            onStateChange: (event) => {
+              if (event.data === window.YT.PlayerState.PLAYING) {
+                pauseOthers(bottomRightPlayerRef.current);
               }
             },
           },
@@ -36,17 +86,7 @@ export default function Home() {
       }
     };
 
-    if (window.YT && window.YT.Player) {
-      createPlayers();
-    } else {
-      window.onYouTubeIframeAPIReady = createPlayers;
-
-      if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
-        const tag = document.createElement("script");
-        tag.src = "https://www.youtube.com/iframe_api";
-        document.body.appendChild(tag);
-      }
-    }
+    loadYouTubeAPI();
   }, []);
 
   return (
@@ -122,44 +162,94 @@ export default function Home() {
         <div
           className="step-grid"
           style={{
-            gridTemplateColumns: "1fr",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+            gap: 24,
           }}
         >
-          <div className="step-card">
+          {/* คลิปซ้าย */}
+          <div
+            className="step-card"
+            style={{
+              background: "#ffffff",
+              border: "1px solid #dbeafe",
+              borderRadius: 24,
+              padding: 24,
+              boxShadow: "0 8px 24px rgba(15, 23, 42, 0.06)",
+            }}
+          >
             <div className="step-icon">📌</div>
 
-            <h3>วิธีการใช้งาน เครื่องมือและWebsite</h3>
+            <h3 style={{ marginBottom: 10 }}>วิธีการใช้งาน เครื่องมือและ Website</h3>
 
-            <p>
+            <p style={{ marginBottom: 18 }}>
               แนะนำขั้นตอนการใช้งานระบบ การเชื่อมต่ออุปกรณ์
               การบันทึกค่าแรงบีบมือ และการดูผลย้อนหลัง
             </p>
 
             <div
+              className="video-card"
               style={{
-                marginTop: 14,
                 width: "100%",
-                display: "flex",
-                justifyContent: "center",
+                boxShadow: "none",
+                borderRadius: 22,
+                overflow: "hidden",
+                background: "#f8fbff",
+                border: "1px solid #e2e8f0",
               }}
             >
-              <div
-                className="video-card"
-                style={{
-                  width: "100%",
-                  maxWidth: 720,
-                  boxShadow: "none",
-                }}
-              >
-                <iframe
-                  id="bottom-video"
-                  className="youtube-video"
-                  src="https://www.youtube.com/embed/FDERpo83TnE?enablejsapi=1"
-                  title="วิธีการใช้งานเครื่องมือและWebsite"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
+              <iframe
+                id="bottom-left-video"
+                className="youtube-video"
+                src="https://www.youtube.com/embed/FDERpo83TnE?enablejsapi=1"
+                title="วิธีการใช้งาน เครื่องมือและ Website"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+
+          {/* คลิปขวา */}
+          <div
+            className="step-card"
+            style={{
+              background: "#ffffff",
+              border: "1px solid #dbeafe",
+              borderRadius: 24,
+              padding: 24,
+              boxShadow: "0 8px 24px rgba(15, 23, 42, 0.06)",
+            }}
+          >
+            <div className="step-icon">🩺</div>
+
+            <h3 style={{ marginBottom: 10 }}>
+              ให้ความรู้เรื่องโรคกล้ามเนื้อมืออ่อนแรง
+            </h3>
+
+            <p style={{ marginBottom: 18 }}>
+              วิดีโอให้ความรู้เกี่ยวกับโรคกล้ามเนื้อมืออ่อนแรง
+              เพื่อช่วยให้เข้าใจอาการ สาเหตุ และแนวทางดูแลเบื้องต้น
+            </p>
+
+            <div
+              className="video-card"
+              style={{
+                width: "100%",
+                boxShadow: "none",
+                borderRadius: 22,
+                overflow: "hidden",
+                background: "#f8fbff",
+                border: "1px solid #e2e8f0",
+              }}
+            >
+              <iframe
+                id="bottom-right-video"
+                className="youtube-video"
+                src="https://www.youtube.com/embed/xvKcgfuW0_g?enablejsapi=1"
+                title="ให้ความรู้เรื่องโรคกล้ามเนื้อมืออ่อนแรง"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
             </div>
           </div>
         </div>
