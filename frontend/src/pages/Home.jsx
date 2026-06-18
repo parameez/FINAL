@@ -107,7 +107,7 @@ export default function Home() {
             <iframe
               id="top-video"
               className="youtube-video"
-              src="https://www.youtube.com/embed/pUN9OUGqZzA?enablejsapi=1"
+              src="https://www.youtube.com/embed/Iex7RXiDV3o?enablejsapi=1"
               title="เรียนรู้เรื่องโรคกล้ามเนื้อมืออ่อนแรง"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
@@ -154,8 +154,8 @@ export default function Home() {
                 <iframe
                   id="bottom-video"
                   className="youtube-video"
-                  src="https://www.youtube.com/embed/7DsXcJ66Rrc?enablejsapi=1"
-                  title="วิธีการใช้งาน Website"
+                  src="https://www.youtube.com/embed/FDERpo83TnE?enablejsapi=1"
+                  title="วิธีการใช้งานเครื่องมือและWebsite"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
