@@ -15,6 +15,7 @@ router.get("/me", auth, async (req, res) => {
         username,
         full_name,
         gender,
+        birth_date,
         device_id
       FROM tp_user
       WHERE user_id = ?
