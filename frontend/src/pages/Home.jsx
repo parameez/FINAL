@@ -199,7 +199,7 @@ export default function Home() {
               <iframe
                 id="bottom-left-video"
                 className="youtube-video"
-                src="https://www.youtube.com/watch?v=-T7m0l-3_m4"
+                src="https://www.youtube.com/embed/-T7m0l-3_m4?enablejsapi=1"
                 title="วิธีการใช้งาน เครื่องมือและ Website"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
